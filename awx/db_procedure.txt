@@ -1,0 +1,4 @@
+## Criando a base do AWX ##
+psql -U postgres postgres -h 10.0.0.8 -p 5000 <- criando atraves do HA proxy
+CREATE USER awx WITH ENCRYPTED PASSWORD 'awxpass';
+CREATE DATABASE awx OWNER awx;
