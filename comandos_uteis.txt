@@ -1,0 +1,22 @@
+systemctl status etcd
+systemctl status haproxy
+
+systemctl start patroni
+systemctl status patroni
+
+tail /var/log/messages
+
+psql -d teste -U admin -h 10.0.0.8 -p 5000 <- Conectando na base
+\l <- Show databases
+\dt <- Show tables
+select * from replica_test; 
+\q <- Sair da base
+
+## Criando a base do AWX ##
+psql -U postgres postgres -h 10.0.0.8 -p 5000 <- criando atraves do HA proxy
+CREATE USER awx WITH ENCRYPTED PASSWORD 'awxpass';
+CREATE DATABASE awx OWNER awx;
+
+ansible-playbook -i inventory install.yml
+
+curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET http://10.0.0.4:8008/
