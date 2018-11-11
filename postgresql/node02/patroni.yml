@@ -1,3 +1,4 @@
+# Arquivo fica em /etc/
 scope: postgres
 name: pg02
 
