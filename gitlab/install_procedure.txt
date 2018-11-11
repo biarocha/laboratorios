@@ -1,0 +1,36 @@
+# Criando a base
+psql -U postgres postgres -h 10.0.0.15 -p 5432 <- criando atraves do VIP
+CREATE USER gitlab WITH ENCRYPTED PASSWORD 'gitlab';
+ALTER USER gitlab WITH SUPERUSER;
+CREATE DATABASE gitlab OWNER gitlab;
+
+# Instalando a extension
+yum install -y postgresql10-contrib
+psql -d gitlab -U postgres -h 10.0.0.15 -p 5432
+CREATE EXTENSION pg_trgm;
+
+## Criar a pasta /srv/gitlab em um disco acessível por ambos servidores ou em disco replicado por ambos servidores
+
+## Criando o container padrao ##
+sudo docker run --detach \
+	--hostname gitlab \
+	--publish 443:443 --publish 2080:2080 --publish 2022:22 \
+	--name gitlab \
+	--restart always \
+	--volume /srv/gitlab/config:/etc/gitlab:Z \
+	--volume /srv/gitlab/logs:/var/log/gitlab:Z \
+	--volume /srv/gitlab/data:/var/opt/gitlab:Z \
+	gitlab/gitlab-ce:latest
+
+## Reconfigurando o container ##	
+sudo docker exec -it gitlab vi /etc/gitlab/gitlab.rb
+	external_url 'http://gitlabvip.eastus.cloudapp.azure.com:2080'
+	postgresql['enable'] = false
+	gitlab_rails['db_adapter'] = 'postgresql'
+	gitlab_rails['db_encoding'] = 'utf8'
+	gitlab_rails['db_database'] = 'gitlab'
+	gitlab_rails['db_username'] = 'gitlab'
+	gitlab_rails['db_password'] = 'gitlab'
+	gitlab_rails['db_host'] = '10.0.0.15'
+	gitlab_rails['db_port'] = 5432
+sudo docker exec -it gitlab gitlab-ctl reconfigure
